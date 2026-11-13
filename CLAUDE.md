@@ -42,6 +42,31 @@ Mention the client when the user asks whether their world is "done". Only build 
   `Choice` (pick one). Registered in the options dataclass.
 - **Slot data**: `fill_slot_data()` returns what the game client needs to know (usually options).
 
+## The example design: keys, a level select and a final door
+
+The README has a worked example, **The Five Kingdoms** ("A good first design"). If the user
+wants to use that model, asks how to structure their world, or asks questions about the
+example, offer this way of working and adapt it to their game:
+
+- **Custom key items** (progression), one per level. They don't exist in the original game;
+  the client keeps a level locked in the game's **own level select** until its key is received.
+- The **first level is open from the start**, with a couple of checks, so the player can begin.
+- A **collection** of custom items (e.g. 3 `Crown Shard`, using a `count` field in the item
+  table) opens the **final door**. The number needed is a `Range` option sent in slot data.
+- **Regions**: `Menu` → `Level Select` → one region per level, connected by entrances named
+  `Enter <level>`. Rules go on the **entrances**, so every location in a level inherits its key.
+- **Locations**: a few per level (e.g. hidden chest, boss). The goal is an **event** location
+  (code `None`, excluded from `location_name_to_id`) holding a locked `Victory` event item;
+  `completion_condition` is `state.has("Victory", player)`.
+- **Item pool** = keys + collection items, padded with filler up to the number of real
+  (non-event) locations.
+- In rule lambdas built in a loop, bind loop variables (`lambda state, key=key: ...`).
+- **Client duties**: lock the level select by key/shard count, replace the game's own rewards
+  with location checks (send the location ID), apply received items, report victory.
+
+Build it up in small steps and run the tests, `Generate.py` and the fuzzer after each one. If
+the game has no level select, the same pattern works with doors, warps or map areas.
+
 ## Files in the world folder
 
 | File                   | Purpose                                                         |
@@ -79,6 +104,11 @@ Check with `grep -rn "MyGameImplementation" worlds/ .github/`. Nothing should re
 - Only edit inside the world folder (plus `.github/workflows` and the README). Don't change
   Archipelago core files.
 - Item and location IDs must be unique and stable. Never renumber existing IDs once released.
+- The server and client only exchange IDs, never names, so the IDs in `Items.py` and
+  `Locations.py` **must match how the items and locations are set up in the client**. When
+  changing an ID, say the client needs the same change.
+- `ITEM_BASE_ID` and `LOCATION_BASE_ID` are just starting numbers. The user can set them to
+  anything they like; each entry adds 1, 2, 3... to them.
 - Every `progression` item should matter to at least one rule; anything not needed by logic
   shouldn't be `progression`.
 - Use `self.random` for randomness, never the global `random` module (seeds must be reproducible).

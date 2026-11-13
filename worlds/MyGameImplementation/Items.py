@@ -3,8 +3,10 @@ from typing import Dict, NamedTuple, Optional
 from BaseClasses import Item, ItemClassification
 
 
-# Every item and location needs a unique number (an "ID"). Pick a big starting number that
-# other games are unlikely to use, then never change an ID once people are playing your world.
+# Every item needs a unique number (an "ID"). The server and client only ever exchange these
+# numbers, never the names, so the IDs here MUST match the IDs your client uses for each item.
+# The starting number is up to you: change ITEM_BASE_ID to whatever you like, and each item
+# adds 1, 2, 3... to it. Never change an ID once people are playing your world.
 ITEM_BASE_ID = 8_675_000
 
 
