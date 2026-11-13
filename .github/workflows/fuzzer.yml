@@ -1,0 +1,18 @@
+name: Fuzz APWorld
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Eijebong/ap-actions/fuzz@main
+        with:
+          apworld-path: worlds/MyGameImplementation
+          ap-version: "0.6.8"
+          python-version: "3.12"
+          runs: 100
+          fuzzer-commit: 53686ba34f9e8852cbe1970666a5f56fd6abf75a
